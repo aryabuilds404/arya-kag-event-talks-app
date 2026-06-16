@@ -5,6 +5,7 @@ let currentFilter = 'all';
 let searchQuery = '';
 
 // DOM Elements
+const btnExport = document.getElementById('btn-export');
 const btnRefresh = document.getElementById('btn-refresh');
 const searchInput = document.getElementById('search-input');
 const filterPills = document.getElementById('filter-pills');
@@ -27,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event Listeners Setup
 function setupEventListeners() {
+  // Export CSV Button
+  btnExport.addEventListener('click', () => {
+    exportToCSV();
+  });
+
   // Refresh Button
   btnRefresh.addEventListener('click', () => {
     if (!btnRefresh.classList.contains('loading')) {
@@ -291,10 +297,16 @@ function createUpdateCard(update, index) {
         <span>Official Release Notes</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
       </a>
-      <button class="btn-tweet-direct" onclick="event.stopPropagation(); directTweet('${update.id}')">
-        <svg viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-        Tweet
-      </button>
+      <div class="card-actions-wrapper">
+        <button class="btn-copy-direct" onclick="event.stopPropagation(); copyToClipboard('${update.id}', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span>Copy</span>
+        </button>
+        <button class="btn-tweet-direct" onclick="event.stopPropagation(); directTweet('${update.id}')">
+          <svg viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+          Tweet
+        </button>
+      </div>
     </div>
   `;
   
@@ -433,4 +445,78 @@ function showToast(message, type = 'success') {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3000);
+}
+
+// Get currently filtered list of updates
+function getFilteredUpdates() {
+  return allUpdates.filter(update => {
+    if (currentFilter !== 'all') {
+      if (update.type.toLowerCase() !== currentFilter) {
+        return false;
+      }
+    }
+    if (searchQuery) {
+      const typeMatch = update.type.toLowerCase().includes(searchQuery);
+      const dateMatch = update.date.toLowerCase().includes(searchQuery);
+      const contentMatch = update.textContent.toLowerCase().includes(searchQuery);
+      return typeMatch || dateMatch || contentMatch;
+    }
+    return true;
+  });
+}
+
+// Export filtered updates to CSV file
+function exportToCSV() {
+  const activeUpdates = getFilteredUpdates();
+  if (activeUpdates.length === 0) {
+    showToast('No updates to export', 'error');
+    return;
+  }
+  
+  let csvContent = "\uFEFFDate,Type,Description,Link\n"; // UTF-8 BOM for Excel support
+  activeUpdates.forEach(update => {
+    const date = `"${update.date.replace(/"/g, '""')}"`;
+    const type = `"${update.type.replace(/"/g, '""')}"`;
+    const desc = `"${update.textContent.replace(/"/g, '""').replace(/\s+/g, ' ').trim()}"`;
+    const link = `"${update.link.replace(/"/g, '""')}"`;
+    csvContent += `${date},${type},${desc},${link}\n`;
+  });
+  
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `bigquery_release_notes_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Exported CSV successfully!', 'success');
+}
+
+// Copy single update contents to clipboard
+async function copyToClipboard(updateId, button) {
+  const update = allUpdates.find(u => u.id === updateId);
+  if (!update) return;
+  
+  const textToCopy = `BigQuery Update (${update.date}) | ${update.type}:\n${update.textContent}\nRead more: ${update.link}`;
+  
+  try {
+    await navigator.clipboard.writeText(textToCopy);
+    
+    // Show visual copied feedback
+    button.classList.add('copied');
+    const span = button.querySelector('span');
+    const originalText = span.textContent;
+    span.textContent = 'Copied!';
+    
+    showToast('Copied to clipboard!', 'success');
+    
+    setTimeout(() => {
+      button.classList.remove('copied');
+      span.textContent = originalText;
+    }, 2000);
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+    showToast('Failed to copy to clipboard', 'error');
+  }
 }
