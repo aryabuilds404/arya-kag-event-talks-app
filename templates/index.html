@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BigQuery Release Notes Reader</title>
+  <meta name="description" content="View and share the latest BigQuery release notes and updates directly from the official Google Cloud feed.">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-container">
+        <div class="logo-icon">BQ</div>
+        <h1>BigQuery Release Notes</h1>
+      </div>
+      <p class="subtitle">Stay updated with the latest features, improvements, and critical issues in Google Cloud BigQuery.</p>
+      <div class="feed-meta">
+        <div class="meta-item">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+          <span id="feed-last-updated">Checking updates...</span>
+        </div>
+        <div class="meta-item">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+          <span id="updates-count">0 updates available</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="control-panel">
+      <div class="search-filter-box">
+        <div class="search-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="search-input" class="search-input" placeholder="Search release notes...">
+        </div>
+      </div>
+      
+      <button id="btn-refresh" class="btn-refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        Refresh Feed
+      </button>
+    </div>
+
+    <div class="filter-pills" id="filter-pills">
+      <span class="pill active" data-filter="all">All Updates</span>
+      <span class="pill" data-filter="feature">Features</span>
+      <span class="pill" data-filter="issue">Issues</span>
+      <span class="pill" data-filter="breaking">Breaking</span>
+      <span class="pill" data-filter="change">Changes</span>
+      <span class="pill" data-filter="announcement">Announcements</span>
+    </div>
+
+    <main>
+      <!-- Loading State -->
+      <div id="loading-state" class="state-container">
+        <svg class="state-icon spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+        <div class="state-title">Fetching Release Notes</div>
+        <div class="state-desc">Connecting to Google Cloud feeds. Please wait...</div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="state-container" style="display: none;">
+        <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <div class="state-title">No Updates Found</div>
+        <div class="state-desc">We couldn't find any release notes matching your filters. Try adjusting your search query.</div>
+      </div>
+
+      <!-- Updates List -->
+      <div class="updates-list" id="updates-list" style="display: none;"></div>
+    </main>
+  </div>
+
+  <!-- Bottom Floating Action Bar -->
+  <div class="floating-action-bar" id="floating-bar">
+    <div class="selection-info">
+      <span class="selection-count" id="selection-count">0</span>
+      <span>update selected</span>
+    </div>
+    <div class="floating-buttons">
+      <button class="btn-tweet-selected" id="btn-tweet-selected">
+        <svg viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+        Tweet Selected Update
+      </button>
+      <button class="btn-clear-selection" id="btn-clear-selection">Clear</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">Feedback message</div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
