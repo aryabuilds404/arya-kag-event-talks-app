@@ -813,3 +813,141 @@ h1 {
   height: 14px;
   stroke: currentColor;
 }
+
+/* ==========================================================================
+   Light Theme Override Variables & Classes
+   ========================================================================== */
+
+body.light-theme {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.7);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-color-hover: rgba(15, 23, 42, 0.18);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+}
+
+body.light-theme h1 {
+  background: linear-gradient(to right, #0f172a, #334155, #475569);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .card-body code {
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--accent-blue);
+}
+
+body.light-theme .floating-action-bar {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.15),
+    0 0 20px rgba(6, 182, 212, 0.05);
+}
+
+body.light-theme .btn-copy-direct {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+body.light-theme .btn-copy-direct:hover {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+body.light-theme .toast {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.1);
+  color: var(--text-primary);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme Toggle Switch Layout & Design */
+.theme-switch-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+.theme-switch {
+  display: inline-block;
+  height: 34px;
+  position: relative;
+  width: 60px;
+}
+
+.theme-switch input {
+  display: none;
+}
+
+.slider {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  bottom: 0;
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+  border-radius: 50%;
+  content: "";
+  height: 26px;
+  width: 26px;
+  position: absolute;
+  left: 3px;
+  transition: var(--transition-smooth);
+  z-index: 3;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.theme-switch input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider svg {
+  width: 14px;
+  height: 14px;
+  z-index: 2;
+  transition: var(--transition-smooth);
+}
+
+.sun-icon {
+  color: #f59e0b;
+  opacity: 0.3;
+}
+
+.moon-icon {
+  color: var(--accent-violet);
+  opacity: 1;
+}
+
+.theme-switch input:checked + .slider .sun-icon {
+  opacity: 1;
+}
+
+.theme-switch input:checked + .slider .moon-icon {
+  opacity: 0.3;
+}

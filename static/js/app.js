@@ -19,15 +19,30 @@ const btnClearSelection = document.getElementById('btn-clear-selection');
 const feedLastUpdated = document.getElementById('feed-last-updated');
 const updatesCount = document.getElementById('updates-count');
 const toast = document.getElementById('toast');
+const themeCheckbox = document.getElementById('theme-checkbox');
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   setupEventListeners();
   fetchReleaseNotes();
 });
 
 // Event Listeners Setup
 function setupEventListeners() {
+  // Theme Toggle Switch
+  themeCheckbox.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      document.body.classList.add('light-theme');
+      localStorage.setItem('theme', 'light-theme');
+      showToast('Switched to Light Theme!', 'success');
+    } else {
+      document.body.classList.remove('light-theme');
+      localStorage.setItem('theme', 'dark-theme');
+      showToast('Switched to Dark Theme!', 'success');
+    }
+  });
+
   // Export CSV Button
   btnExport.addEventListener('click', () => {
     exportToCSV();
@@ -518,5 +533,22 @@ async function copyToClipboard(updateId, button) {
   } catch (err) {
     console.error('Failed to copy text: ', err);
     showToast('Failed to copy to clipboard', 'error');
+  }
+}
+
+// Initialize theme from local storage
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme');
+  
+  if (savedTheme === 'light-theme') {
+    document.body.classList.add('light-theme');
+    if (themeCheckbox) {
+      themeCheckbox.checked = true;
+    }
+  } else {
+    document.body.classList.remove('light-theme');
+    if (themeCheckbox) {
+      themeCheckbox.checked = false;
+    }
   }
 }
